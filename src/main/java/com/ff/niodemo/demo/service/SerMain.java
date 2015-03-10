@@ -12,7 +12,7 @@ public class SerMain {
 			e.printStackTrace();
 		}
 		
-		System.out.println("Òì³£½áÊø");
+		System.out.println("å¼‚å¸¸ç»“æŸ");
 		System.in.read();
 	}
 

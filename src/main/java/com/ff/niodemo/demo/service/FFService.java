@@ -14,12 +14,12 @@ import java.util.Set;
 /**
  * 
  * <ul>
- * <li>ÏîÄ¿Ãû³Æ£ºnioDemo1 </li>
- * <li>ÀàÃû³Æ£º  FFService </li>
- * <li>ÀàÃèÊö£ºNIO service   </li>
- * <li>´´½¨ÈË£ºjy </li>
- * <li>´´½¨Ê±¼ä£º2015Äê3ÔÂ9ÈÕ </li>
- * <li>ĞŞ¸Ä±¸×¢£º</li>
+ * <li>é¡¹ç›®åç§°ï¼šnioDemo1 </li>
+ * <li>ç±»åç§°ï¼š  FFService </li>
+ * <li>ç±»æè¿°ï¼šNIO service   </li>
+ * <li>åˆ›å»ºäººï¼šjy </li>
+ * <li>åˆ›å»ºæ—¶é—´ï¼š2015å¹´3æœˆ9æ—¥ </li>
+ * <li>ä¿®æ”¹å¤‡æ³¨ï¼š</li>
  * </ul>
  */
 public class FFService {
@@ -28,65 +28,65 @@ public class FFService {
 	static final int PORT = 7777;
 
 	public void stop() throws IOException {
-		System.out.println("Æô¶¯·şÎñ....");
-		// ´´½¨Ò»¸öselector
+		System.out.println("å¯åŠ¨æœåŠ¡....");
+		// åˆ›å»ºä¸€ä¸ªselector
 		Selector selector = Selector.open();
-		// ´´½¨Ò»¸ö·şÎñÍ¨µÀ
+		// åˆ›å»ºä¸€ä¸ªæœåŠ¡é€šé“
 		ServerSocketChannel serChannel = ServerSocketChannel.open();
-		// °ó¶¨µ½Ò»¸ö¶Ë¿ÚÉÏÃæ
+		// ç»‘å®šåˆ°ä¸€ä¸ªç«¯å£ä¸Šé¢
 		serChannel.socket().bind(new InetSocketAddress(ADDR, PORT));
-		// ÉèÖÃ·Ç×èÈûÄ£Ê½
+		// è®¾ç½®éé˜»å¡æ¨¡å¼
 		serChannel.configureBlocking(false);
-		// ×¢²áµ½Ñ¡ÔñÆ÷
+		// æ³¨å†Œåˆ°é€‰æ‹©å™¨
 		serChannel.register(selector, SelectionKey.OP_ACCEPT);
 		for (;;) {
 			if (selector.select() == 0) {
 				continue;
 			}
-			System.out.println("ÓĞÍ¨ĞÅ....." + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-			// »ñÈ¡·¢ÉúÁË¹Ø×¢Ê±¼äµÄKey¼¯ºÏ£¬Ã¿¸öSelectionKey¶ÔÓ¦ÁË×¢²áµÄÒ»¸öÍ¨µÀ
+			System.out.println("æœ‰é€šä¿¡....." + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+			// è·å–å‘ç”Ÿäº†å…³æ³¨æ—¶é—´çš„Keyé›†åˆï¼Œæ¯ä¸ªSelectionKeyå¯¹åº”äº†æ³¨å†Œçš„ä¸€ä¸ªé€šé“
 			Set<SelectionKey> keys = selector.selectedKeys();
-			// ¶àËµÒ»¾äselector.keys()·µ»ØËùÓĞµÄSelectionKey(°üÀ¨Ã»ÓĞ·¢ÉúÊÂ¼şµÄ)
+			// å¤šè¯´ä¸€å¥selector.keys()è¿”å›æ‰€æœ‰çš„SelectionKey(åŒ…æ‹¬æ²¡æœ‰å‘ç”Ÿäº‹ä»¶çš„)
 			for (SelectionKey key : keys) {
 				if (key.isValid()) {
 					System.out.println("key.isValid()..........");
 				}
-				// OP_ACCEPT Õâ¸öÖ»ÓĞServerSocketChannel²ÅÓĞ¿ÉÄÜ´¥·¢
+				// OP_ACCEPT è¿™ä¸ªåªæœ‰ServerSocketChannelæ‰æœ‰å¯èƒ½è§¦å‘
 				if (key.isAcceptable()) {
 					System.out.println("key.isAcceptable()..........");
-					// µÃµ½Óë¿Í»§¶ËµÄÌ×½Ó×ÖÍ¨µÀ
+					// å¾—åˆ°ä¸å®¢æˆ·ç«¯çš„å¥—æ¥å­—é€šé“
 					SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
-					// Í¬ÑùÉèÖÃÎª·Ç×èÈûÄ£Ê½
+					// åŒæ ·è®¾ç½®ä¸ºéé˜»å¡æ¨¡å¼
 					channel.configureBlocking(false);
-					// Í¬Ñù½«ÓÚ¿Í»§¶ËµÄÍ¨µÀÔÚselectorÉÏ×¢²á£¬OP_READ¶ÔÓ¦¿É¶ÁÊÂ¼ş(¶Ô·½ÓĞĞ´ÈëÊı¾İ),¿ÉÒÔÍ¨¹ıkey»ñÈ¡¹ØÁªµÄÑ¡ÔñÆ÷
+					// åŒæ ·å°†äºå®¢æˆ·ç«¯çš„é€šé“åœ¨selectorä¸Šæ³¨å†Œï¼ŒOP_READå¯¹åº”å¯è¯»äº‹ä»¶(å¯¹æ–¹æœ‰å†™å…¥æ•°æ®),å¯ä»¥é€šè¿‡keyè·å–å…³è”çš„é€‰æ‹©å™¨
 					channel.register(key.selector(), SelectionKey.OP_READ, ByteBuffer.allocate(1024));
 				}
-				// OP_READ ÓĞÊı¾İ¿É¶Á
+				// OP_READ æœ‰æ•°æ®å¯è¯»
 				if (key.isReadable()) {
 					System.out.println("key.isReadable()..........");
 					SocketChannel channel = (SocketChannel) key.channel();
-					// µÃµ½¸½¼ş£¬¾ÍÊÇÉÏÃæSocketChannel½øĞĞregisterµÄÊ±ºòµÄµÚÈı¸ö²ÎÊı,¿ÉÎªËæÒâObject
+					// å¾—åˆ°é™„ä»¶ï¼Œå°±æ˜¯ä¸Šé¢SocketChannelè¿›è¡Œregisterçš„æ—¶å€™çš„ç¬¬ä¸‰ä¸ªå‚æ•°,å¯ä¸ºéšæ„Object
 					ByteBuffer buffer = (ByteBuffer) key.attachment();
-					// ¶ÁÊı¾İ ÕâÀï¾Í¼òµ¥Ğ´Ò»ÏÂ£¬Êµ¼ÊÉÏÓ¦¸Ã»¹ÊÇÑ­»·¶ÁÈ¡µ½¶Á²»³öÀ´ÎªÖ¹µÄ
+					// è¯»æ•°æ® è¿™é‡Œå°±ç®€å•å†™ä¸€ä¸‹ï¼Œå®é™…ä¸Šåº”è¯¥è¿˜æ˜¯å¾ªç¯è¯»å–åˆ°è¯»ä¸å‡ºæ¥ä¸ºæ­¢çš„
 					channel.read(buffer);
-					// ¸Ä±ä×ÔÉí¹Ø×¢ÊÂ¼ş£¬¿ÉÒÔÓÃÎ»»ò²Ù×÷|×éºÏÊ±¼ä
+					// æ”¹å˜è‡ªèº«å…³æ³¨äº‹ä»¶ï¼Œå¯ä»¥ç”¨ä½æˆ–æ“ä½œ|ç»„åˆæ—¶é—´
 					key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 				}
-				// OP_WRITE ¿ÉĞ´×´Ì¬ Õâ¸ö×´Ì¬Í¨³£×ÜÊÇ´¥·¢µÄ£¬ËùÒÔÖ»ÔÚĞèÒªĞ´²Ù×÷Ê±²Å½øĞĞ¹Ø×¢
+				// OP_WRITE å¯å†™çŠ¶æ€ è¿™ä¸ªçŠ¶æ€é€šå¸¸æ€»æ˜¯è§¦å‘çš„ï¼Œæ‰€ä»¥åªåœ¨éœ€è¦å†™æ“ä½œæ—¶æ‰è¿›è¡Œå…³æ³¨
 				if (key.isWritable()) {
 					System.out.println("key.isWritable()..........");
-					// Ğ´Êı¾İÂÓ¹ı£¬¿ÉÒÔ×Ô½¨buffer£¬Ò²¿ÉÓÃ¸½¼ş¶ÔÏó(¿´Çé¿ö),×¢ÒâbufferĞ´ÈëºóĞèÒªflip
+					// å†™æ•°æ®æ è¿‡ï¼Œå¯ä»¥è‡ªå»ºbufferï¼Œä¹Ÿå¯ç”¨é™„ä»¶å¯¹è±¡(çœ‹æƒ…å†µ),æ³¨æ„bufferå†™å…¥åéœ€è¦flip
 					
-					// Ğ´Íê¾Í°ÉĞ´×´Ì¬¹Ø×¢È¥µô£¬·ñÔò»áÒ»Ö±´¥·¢Ğ´ÊÂ¼ş
+					// å†™å®Œå°±å§å†™çŠ¶æ€å…³æ³¨å»æ‰ï¼Œå¦åˆ™ä¼šä¸€ç›´è§¦å‘å†™äº‹ä»¶
 					key.interestOps(SelectionKey.OP_READ);
 				}
 				if (key.isConnectable()) {
 					System.out.println("key.isConnectable()..........");
 				}
 				
-				// ÓÉÓÚselect²Ù×÷Ö»¹Ü¶ÔselectedKeys½øĞĞÌí¼Ó£¬ËùÒÔkey´¦ÀíºóÎÒÃÇĞèÒª´ÓÀïÃæ°ÑkeyÈ¥µô
+				// ç”±äºselectæ“ä½œåªç®¡å¯¹selectedKeysè¿›è¡Œæ·»åŠ ï¼Œæ‰€ä»¥keyå¤„ç†åæˆ‘ä»¬éœ€è¦ä»é‡Œé¢æŠŠkeyå»æ‰
 				keys.remove(key);
-				System.out.println("´¦ÀíÍêÒ»¸öÇëÇó...");
+				System.out.println("å¤„ç†å®Œä¸€ä¸ªè¯·æ±‚...");
 			}
 		}
 
