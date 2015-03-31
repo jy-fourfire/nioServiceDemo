@@ -2,14 +2,20 @@ package com.ff.niodemo.demo.service;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Set;
+
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -23,11 +29,20 @@ import java.util.Set;
  * </ul>
  */
 public class FFService {
+	// static Logger log = Logger.getLogger(FFService.class);
+	//
 
 	static final String ADDR = "127.0.0.1";
 	static final int PORT = 7777;
+	static private Charset charset;
 
-	public void stop() throws IOException {
+	public FFService() {
+		charset = Charset.forName("UTF-8");
+	}
+
+	public static long index = 0;
+
+	public void start() throws Exception {
 		System.out.println("启动服务....");
 		// 创建一个selector
 		Selector selector = Selector.open();
@@ -39,57 +54,102 @@ public class FFService {
 		serChannel.configureBlocking(false);
 		// 注册到选择器
 		serChannel.register(selector, SelectionKey.OP_ACCEPT);
-		for (;;) {
-			if (selector.select() == 0) {
-				continue;
+		while (true) {
+			int n = selector.select();
+			if (n == 0) {
+				continue; // nothing to do
 			}
-			System.out.println("有通信....." + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-			// 获取发生了关注时间的Key集合，每个SelectionKey对应了注册的一个通道
-			Set<SelectionKey> keys = selector.selectedKeys();
-			// 多说一句selector.keys()返回所有的SelectionKey(包括没有发生事件的)
-			for (SelectionKey key : keys) {
-				if (key.isValid()) {
-					System.out.println("key.isValid()..........");
-				}
-				// OP_ACCEPT 这个只有ServerSocketChannel才有可能触发
+			System.out.println(n+"有通信....." + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+			Iterator it = selector.selectedKeys().iterator();
+			while (it.hasNext()) {
+				SelectionKey key = (SelectionKey) it.next();
 				if (key.isAcceptable()) {
-					System.out.println("key.isAcceptable()..........");
-					// 得到与客户端的套接字通道
-					SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
-					// 同样设置为非阻塞模式
+					ServerSocketChannel server = (ServerSocketChannel) key.channel();
+					SocketChannel channel = server.accept();
+					if (channel == null) {
+						System.out.println("channel == null");// //handle code, could happen
+						break;
+					}
 					channel.configureBlocking(false);
-					// 同样将于客户端的通道在selector上注册，OP_READ对应可读事件(对方有写入数据),可以通过key获取关联的选择器
-					channel.register(key.selector(), SelectionKey.OP_READ, ByteBuffer.allocate(1024));
+					channel.register(selector, SelectionKey.OP_READ);
+
 				}
-				// OP_READ 有数据可读
 				if (key.isReadable()) {
-					System.out.println("key.isReadable()..........");
-					SocketChannel channel = (SocketChannel) key.channel();
-					// 得到附件，就是上面SocketChannel进行register的时候的第三个参数,可为随意Object
-					ByteBuffer buffer = (ByteBuffer) key.attachment();
-					// 读数据 这里就简单写一下，实际上应该还是循环读取到读不出来为止的
-					channel.read(buffer);
-					// 改变自身关注事件，可以用位或操作|组合时间
-					key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-				}
-				// OP_WRITE 可写状态 这个状态通常总是触发的，所以只在需要写操作时才进行关注
-				if (key.isWritable()) {
-					System.out.println("key.isWritable()..........");
-					// 写数据掠过，可以自建buffer，也可用附件对象(看情况),注意buffer写入后需要flip
-					
-					// 写完就吧写状态关注去掉，否则会一直触发写事件
-					key.interestOps(SelectionKey.OP_READ);
-				}
-				if (key.isConnectable()) {
-					System.out.println("key.isConnectable()..........");
+					System.out.println("-----------------"+index);
+					readDataFromSocket(key);
 				}
 				
-				// 由于select操作只管对selectedKeys进行添加，所以key处理后我们需要从里面把key去掉
-				keys.remove(key);
-				System.out.println("处理完一个请求...");
+				selector.selectedKeys().remove(it);
+				//it.remove();
 			}
 		}
 
+	}
+
+	private void readDataFromSocket(SelectionKey key) {
+		index++;
+		if (index > 1000 && (index / 1000 == 0)) {
+			System.out.println("==>" + index);
+		}
+	}
+
+	public static synchronized void waitTest() {
+		index++;
+		System.out.println("处理完一个请求..." + index);
+		if (1 == 1)
+			return;
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			System.out.println("模拟暂停错误--waitTest-->" + e.getMessage());
+		}
+	}
+
+	private static void write(SelectionKey key) throws IOException {
+		SocketChannel socketChannel = (SocketChannel) key.channel();
+		ByteBuffer byteBuffer = (ByteBuffer) key.attachment();
+		byteBuffer.flip();
+		String data = decode(byteBuffer);
+
+		if (data.indexOf("\r\n") == -1) {
+			return;
+		}
+		String outputData = data.substring(0, data.indexOf("\n") + 1);
+		System.out.println("--->" + outputData);
+		ByteBuffer outputBuffer = encode("echo:" + outputData);
+		while (outputBuffer.hasRemaining()) {
+			socketChannel.write(outputBuffer);
+		}
+
+		// ByteBuffer temp = encode(outputData);
+		// byteBuffer.position(temp.limit());
+		//
+		// byteBuffer.compact();
+
+		if (outputData.equals("bye\r\n")) {
+			key.cancel();
+			socketChannel.close();
+			System.out.println("链接已经关闭");
+		}
+	}
+
+	/**
+	 * 解码
+	 * @param byteBuffer
+	 * @return
+	 */
+	private static synchronized String decode(ByteBuffer byteBuffer) {
+		CharBuffer charBuffer = charset.decode(byteBuffer);
+		return charBuffer.toString();
+	}
+
+	/**
+	 * 编码
+	 * @param str
+	 * @return
+	 */
+	private static synchronized ByteBuffer encode(String str) {
+		return charset.encode(str);
 	}
 
 }
